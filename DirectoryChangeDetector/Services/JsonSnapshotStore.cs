@@ -42,7 +42,12 @@ public sealed class JsonSnapshotStore(string snapshotsDirectory, ILogger<JsonSna
 
         var file = GetSnapshotFilePath(snapshot.RootPath);
         await using var stream = new FileStream(
-            file, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+            path: file, 
+            mode: FileMode.Create, 
+            access: FileAccess.Write,
+            share: FileShare.None, 
+            bufferSize: 4096,
+            options: FileOptions.Asynchronous);
         await JsonSerializer.SerializeAsync(stream, snapshot, JsonOptions, cancellationToken);
     }
 
