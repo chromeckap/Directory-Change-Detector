@@ -1,0 +1,7 @@
+﻿services:
+  directorychangedetector:
+    image: directorychangedetector
+    build:
+      context: .
+      dockerfile: DirectoryChangeDetector/Dockerfile
+
