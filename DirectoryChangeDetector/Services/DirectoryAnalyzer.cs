@@ -10,8 +10,6 @@ public sealed class DirectoryAnalyzer(
     ILogger<DirectoryAnalyzer> logger)
     : IDirectoryAnalyzer
 {
-    // Note: a manual, single-user tool. Concurrent analyses of the same path are not guarded
-    // (see README "Omezení"); for this exercise that's out of scope.
     public async Task<ChangeReport> AnalyzeAsync(string path, CancellationToken cancellationToken = default)
     {
         var root = ValidateAndNormalize(path);
