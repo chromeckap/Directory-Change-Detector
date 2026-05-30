@@ -117,7 +117,11 @@ public sealed class DirectoryAnalyzer(
         string root, ScanResult current, DateTimeOffset scannedAt, CancellationToken cancellationToken)
     {
         var entries = current.Files
-            .Select(file => new FileEntry { RelativePath = file.Key, Hash = file.Value, Version = 1 })
+            .Select(file => new FileEntry 
+                { 
+                    RelativePath = file.Key,
+                    Hash = file.Value, Version = 1
+                })
             .ToList();
 
         await SaveSnapshotAsync(root, entries, current.Directories, scannedAt, cancellationToken);
