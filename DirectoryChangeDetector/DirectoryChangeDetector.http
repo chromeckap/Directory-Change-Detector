@@ -1,6 +1,10 @@
 @DirectoryChangeDetector_HostAddress = http://localhost:5281
 
-GET {{DirectoryChangeDetector_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{DirectoryChangeDetector_HostAddress}}/api/v1/analyze
+Content-Type: application/json
+
+{
+  "path": "C:\\some\\absolute\\path"
+}
 
 ###
