@@ -3,7 +3,7 @@ namespace DirectoryChangeDetector.Services;
 public static class PathUtilities
 {
     // Case-insensitive on every OS for stable, portable snapshots (Windows is the primary
-    // target). Trade-off: on a case-sensitive FS "a.txt" and "A.txt" collide — see README.
+    // target). Trade-off: on a case-sensitive FS "a.txt" and "A.txt" collide
     public static readonly StringComparer Comparer = StringComparer.OrdinalIgnoreCase;
 
     public static string NormalizeRoot(string fullPath) =>
