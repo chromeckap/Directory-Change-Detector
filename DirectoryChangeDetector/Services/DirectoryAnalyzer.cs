@@ -55,41 +55,33 @@ public sealed class DirectoryAnalyzer(
 
     private async Task<ScanResult> ScanAsync(string root, CancellationToken cancellationToken)
     {
-        var files = new Dictionary<string, string>(PathUtilities.Comparer);
-        var directories = new List<string>();
-        var pending = new Stack<string>();
-        pending.Push(root);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        while (pending.Count > 0)
+        string[] allDirectories;
+        string[] allFiles;
+        try
+        {
+            allDirectories = Directory.GetDirectories(root, "*", SearchOption.AllDirectories);
+            allFiles = Directory.GetFiles(root, "*", SearchOption.AllDirectories);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            // AllDirectories enumerates the whole tree in one call, so a single inaccessible
+            // sub-directory aborts it entirely; surface that as a failed scan rather than
+            // silently returning partial results.
+            logger.LogWarning(ex, "Failed to enumerate directory tree under: {Root}", root);
+            throw new DirectoryAnalysisException($"Could not scan directory: '{root}'.", ex);
+        }
+
+        var directories = allDirectories
+            .Select(directory => PathUtilities.ToRelativeKey(root, directory))
+            .ToList();
+
+        var files = new Dictionary<string, string>(PathUtilities.Comparer);
+        foreach (var file in allFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var directory = pending.Pop();
-
-            string[] subDirectories;
-            string[] directoryFiles;
-            try
-            {
-                subDirectories = Directory.GetDirectories(directory);
-                directoryFiles = Directory.GetFiles(directory);
-            }
-            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
-            {
-                // Skip an unreadable sub-directory rather than failing the whole scan.
-                logger.LogWarning(ex, "Skipping inaccessible directory: {Directory}", directory);
-                continue;
-            }
-
-            foreach (var subDirectory in subDirectories)
-            {
-                directories.Add(PathUtilities.ToRelativeKey(root, subDirectory));
-                pending.Push(subDirectory);
-            }
-
-            foreach (var file in directoryFiles)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await HashFileInto(root, file, files, cancellationToken);
-            }
+            await HashFileInto(root, file, files, cancellationToken);
         }
 
         return new ScanResult(files, directories);
